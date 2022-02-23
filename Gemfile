@@ -45,3 +45,13 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 end
+
+# Use capistrano for deployment
+group :development do
+  gem 'bcrypt_pbkdf', require: false
+  gem 'ed25519', require: false
+  gem 'capistrano', require: false
+  gem 'capistrano-rails', require: false
+  gem 'capistrano-rbenv', require: false
+  gem 'capistrano-passenger', require: false
+end
