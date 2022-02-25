@@ -1,5 +1,3 @@
-json.key_format! camelize: :lower
-
 json.extract! transaction, :restaurant_id
 json.bus_dt transaction.bus_dt.strftime('%FT%T')
 json.extract! transaction, :order_number
