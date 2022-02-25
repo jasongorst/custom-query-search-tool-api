@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2022_02_24_223415) do
+ActiveRecord::Schema[7.0].define(version: 2022_02_25_220129) do
   create_table "transactions", charset: "utf8mb4", force: :cascade do |t|
     t.integer "restaurant_id"
     t.date "bus_dt"
     t.integer "order_number"
     t.datetime "order_time", precision: nil
-    t.decimal "transaction_total_amount", precision: 10, scale: 2
-    t.decimal "transaction_net_amount", precision: 10, scale: 2
+    t.decimal "total_amount", precision: 10, scale: 2
+    t.decimal "net_amount", precision: 10, scale: 2
     t.integer "item_sold_qty"
     t.integer "beverage_qty"
     t.decimal "discount_amount", precision: 10, scale: 2
