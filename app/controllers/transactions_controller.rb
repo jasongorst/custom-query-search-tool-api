@@ -1,63 +1,6 @@
+require 'constants'
+
 class TransactionsController < ApplicationController
-  METRIC_DEFINITIONS = [
-    {
-      metricCode: 'TotalAmount',
-      alias: 'Transaction Total Amount $',
-      dataType: 'Money',
-      decimalPlaces: 2
-    },
-    {
-      metricCode: 'NetAmount',
-      alias: 'Transaction Net Amount $',
-      dataType: 'Money',
-      decimalPlaces: 2
-    },
-    {
-      metricCode: 'ItemSoldQty',
-      alias: 'Items Sold #',
-      dataType: 'Number',
-      decimalPlaces: 0
-    },
-    {
-      metricCode: 'BeverageQty',
-      alias: 'Beverages Sold #',
-      dataType: 'Number',
-      decimalPlaces: 0
-    },
-    {
-      metricCode: 'DiscountAmount',
-      alias: 'Transaction Discount Amount $',
-      dataType: 'Money',
-      decimalPlaces: 2
-    },
-    {
-      metricCode: 'DiscountRatio',
-      alias: 'Transaction Discount Ratio %',
-      dataType: 'Percent',
-      decimalPlaces: 2
-    },
-    {
-      metricCode: 'ItemDeletedAmount',
-      alias: 'Item Deleted Amount $',
-      dataType: 'Money',
-      decimalPlaces: 2
-    },
-    {
-      metricCode: 'RefundAmount',
-      alias: 'Transaction Refund Amount $',
-      dataType: 'Money',
-      decimalPlaces: 2
-    }
-  ].freeze
-
-  COMPARE_OPTIONS = {
-    'LessThan': '<',
-    'LessThanOrEqual': '<=',
-    'Equal': '=',
-    'GreaterThanOrEqual': '>=',
-    'GreaterThan': '>'
-  }.freeze
-
   # GET /Search/Test
   def test
     render json: 'API status - OK!', status: :ok
@@ -65,25 +8,35 @@ class TransactionsController < ApplicationController
 
   # GET /Search/MetricDefinitions
   def metric_definitions
-    render json: METRIC_DEFINITIONS, status: :ok
+    render json: Constants::METRIC_DEFINITIONS, status: :ok
   end
 
   # POST /Search/Query
   def query
-    results = Transaction.where('restaurant_id': params['restaurantIds'])
-                         .where('order_time': combine_date_and_hour(params['fromDate'], params['fromHour'])..combine_date_and_hour(params['toDate'], params['toHour']))
-    render json: results, status: :ok
+    from = combine_date_and_hour(params['fromDate'], params['fromHour'])
+    to = combine_date_and_hour(params['toDate'], params['toHour'])
+    metric_criteria = parse_metric_criteria(params['metricCriteria'])
+
+    @transactions = Transaction.where(restaurant_id: params['restaurantIds'])
+                               .where(order_time: from..to)
+                               .where(metric_criteria)
+                               .order(:order_time)
   end
 
   private
 
-  def parse_date(datetime_str)
-    # Date implicitly strips time from the datetime string
-    Date.iso8601(datetime_str)
+  def combine_date_and_hour(date, hour)
+    Date.parse(date) + hour.hours
   end
 
-  def combine_date_and_hour(date, hour)
-    parse_date(date) + hour.hours
+  def parse_metric_criteria(metric_criteria)
+    metric_criteria.map do |criteria|
+      field = criteria['metricCode'].underscore
+      comparison = Constants::COMPARE_OPTIONS[criteria['compareType']]
+      value = criteria['value']
+
+      [field, comparison, value].join(' ')
+    end.join(' AND ')
   end
 
   # Only allow a list of trusted parameters through.
