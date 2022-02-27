@@ -20,7 +20,7 @@ class TransactionsController < ApplicationController
     @transactions = Transaction.where(restaurant_id: params['restaurantIds'])
                                .where(order_time: from..to)
                                .where(metric_criteria)
-                               .order(:order_time)
+                               .order(:restaurant_id, :order_time)
   end
 
   private
